@@ -139,7 +139,7 @@ def draw_bboxes(image, locations, i):
     print(pick)
     for startX, startY, endX, endY, confidence in pick:
         cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
-        cv2.putText(image,str(i+1), (startX,startY), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 0), 2)
+        cv2.putText(image,str(i+1), (startX,startY), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
     #cv2.imwrite('bbox.png',image)#test on a single image
     return image
 def load_image(path, height, width, mode='RGB'):
@@ -251,7 +251,7 @@ def classify(caffemodel, deploy_file, image_files, image, i,
     # Classify the image
     
     scores = forward_pass(images, net, transformer,i, batch_size=batch_size)
-
+    
     ### Process the results
 
     # Format of scores is [ batch_size x max_bbox_per_image x 5 (xl, yt, xr, yb, confidence) ]
@@ -269,15 +269,18 @@ def classify(caffemodel, deploy_file, image_files, image, i,
                 int(round(bottom)),
                 confidence,
             )
+    #img = resize_img(image,height,width)
+    print(width)
     img_result = image
     
     img_result = draw_bboxes(image,image_results, i)
+    img_result = resize_img(img_result,720,1280)
     return img_result
 
 if __name__ == '__main__':
     script_start_time = time.time()
 
-    parser = argparse.ArgumentParser(description='Detectnet multi class inference')
+    parser = argparse.ArgumentParser(description='Classification example - DIGITS')
 
     ### Positional arguments
 
@@ -305,8 +308,9 @@ if __name__ == '__main__':
     print str(args['image_file'])
     str1 = ''.join(args['image_file'])
     img = cv2.imread(str1)
+    image = resize_img(img,400,500) #resize to network input size
     for i in range(-1,8):
-    	result = classify(args['caffemodel'], args['deploy_file'], args['image_file'], img, i,
+    	result = classify(args['caffemodel'], args['deploy_file'], args['image_file'], image, i,
            	  args['mean'], args['labels'], args['batch_size'], not args['nogpu'])
     cv2.imshow("image", result)
     cv2.waitKey(0)
